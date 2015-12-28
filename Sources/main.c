@@ -55,7 +55,7 @@ extern QueueHandle_t schedulerQueue;
 extern QueueHandle_t messageQueue;
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
-static void messageQueueSenderRoutine(CoRoutineHandle_t xHandle,unsigned portBASE_TYPE uxIndex) {
+static void messageQueueSenderRoutine(CoRoutineHandle_t xHandle, unsigned portBASE_TYPE uxIndex) {
 	// Variables in co-routines must be declared static if they must maintain value across a blocking call.
 	static portBASE_TYPE xNumberToPost = 0;
 	static portBASE_TYPE xResult;
@@ -65,7 +65,7 @@ static void messageQueueSenderRoutine(CoRoutineHandle_t xHandle,unsigned portBAS
 
 	for (;;) {
 		// This assumes the queue has already been created.
- 		crQUEUE_SEND(xHandle, messageQueue, &xNumberToPost, (TickType_t ) 0U, &xResult);
+ //		crQUEUE_SEND(xHandle, messageQueue, &xNumberToPost, (TickType_t ) 0U, &xResult);
 
 		if (xResult != pdPASS) {
 			// The message was not posted!
@@ -86,7 +86,7 @@ static void messageQueueReceiveRoutine(CoRoutineHandle_t xHandle, unsigned portB
 
 	for (;;) {
 	// Wait for data to become available on the queue.
-		crQUEUE_RECEIVE(xHandle, messageQueue, &uxLEDToFlash, portMAX_DELAY, &xResult);
+	//	crQUEUE_RECEIVE(xHandle, messageQueue, &uxLEDToFlash, portMAX_DELAY, &xResult);
 
 		if (xResult == pdPASS) {
 		// We received the LED to flash - flash it!
@@ -188,22 +188,18 @@ int main(void)
   /*** End of Processor Expert internal initialization.                    ***/
   /* Write your code here */
 
-
   // In this case the index is not used and is passed
   // in as 0.
-  //xCoRoutineCreate( messageQueueSenderRoutine, 0, 0 );
-  //xCoRoutineCreate( messageQueueReceiveRoutine, 0, 1);
-  ///xCoRoutineCreate( schedulerQueueReceiveRoutine, 0, 2);
- /// xCoRoutineCreate( schedulerQueueSendRoutine, 0, 3 );
+  xCoRoutineCreate( messageQueueSenderRoutine, 0, 0 );
+  xCoRoutineCreate( messageQueueReceiveRoutine, 0, 1);
+  xCoRoutineCreate( schedulerQueueReceiveRoutine, 0, 2);
+ // xCoRoutineCreate( schedulerQueueSendRoutine, 0, 3 );
   //xCoRoutineCreate( emptyRunnerRoutine, 0, 4 );
- // xCoRoutineCreate( anotherEmptyRunnerRoutine, (UBaseType_t) 0, (UBaseType_t) 6);
-//  xCoRoutineCreate( andAnotherEmptyRunnerRoutine, (UBaseType_t) 0,  (UBaseType_t) 7);
-
+  //xCoRoutineCreate( anotherEmptyRunnerRoutine, (UBaseType_t) 0, (UBaseType_t) 6);
+ // xCoRoutineCreate( andAnotherEmptyRunnerRoutine, (UBaseType_t) 0,  (UBaseType_t) 7);
 
   FRTOS1_vTaskStartScheduler();
-
-
-
+//  vCoRoutineSchedule();
 
   /*** Don't write any code pass this line, or it will be deleted during code generation. ***/
   /*** RTOS startup code. Macro PEX_RTOS_START is defined by the RTOS component. DON'T MODIFY THIS CODE!!! ***/
