@@ -54,7 +54,6 @@ extern QueueHandle_t schedulerQueue;
 extern QueueHandle_t messageQueue;
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
-
 static void messageQueueSenderRoutine(CoRoutineHandle_t xHandle,
 		unsigned portBASE_TYPE uxIndex) {
 
@@ -85,8 +84,6 @@ static void messageQueueSenderRoutine(CoRoutineHandle_t xHandle,
 	crEND();
 }
 
-// A co-routine receives the number of an LED to flash from a queue.  It
-// blocks on the queue until the number is received.
 static void messageQueueReceiveRoutine(CoRoutineHandle_t xHandle,
 	unsigned portBASE_TYPE uxIndex) {
 // Variables in co-routines must be declared static if they must maintain value across a blocking call.
@@ -114,15 +111,13 @@ static void messageQueueReceiveRoutine(CoRoutineHandle_t xHandle,
 // A co-routine that blocks on a queue waiting for characters to be received.
 static void schedulerQueueReceiveRoutine(CoRoutineHandle_t xHandle,
 		unsigned portBASE_TYPE uxIndex) {
-	char cRxedChar;
-	portBASE_TYPE xResult;
+	static char cRxedChar;
+	static portBASE_TYPE xResult;
 	static unsigned portBASE_TYPE uxLEDToFlash;
-           // All co-routines must start with a call to crSTART().
+
 	crSTART( xHandle );
 
 	for (;;) {
-		// Wait for data to become available on the queue.  This assumes the
-		// queue xCommsRxQueue has already been created!
 		crQUEUE_RECEIVE(xHandle, schedulerQueue, &uxLEDToFlash, portMAX_DELAY, &xResult);
 
 		// Was a character received?
@@ -131,7 +126,6 @@ static void schedulerQueueReceiveRoutine(CoRoutineHandle_t xHandle,
 		}
 	}
 
-         // All co-routines must end with a call to crEND().
 	crEND();
 }
 
@@ -139,9 +133,8 @@ static void schedulerQueueSendRoutine( xCoRoutineHandle xHandle, unsigned portBA
     // cChar holds its value while this co-routine is blocked and must therefore
 	// be declared static.
 	static char cCharToTx = 'a';
-	portBASE_TYPE xResult;
+	static portBASE_TYPE xResult;
 
-	// All co-routines must start with a call to crSTART().
 	crSTART( xHandle );
 
 	for (;;) {
@@ -154,14 +147,8 @@ static void schedulerQueueSendRoutine( xCoRoutineHandle xHandle, unsigned portBA
 		// Could not post the character to the queue.
 		}
 
-		// Enable the UART Tx interrupt to cause an interrupt in this
-		// hypothetical UART.  The interrupt will obtain the character
-		// from the queue and send it.
 		// ENABLE_RX_INTERRUPT();
 
-		// Increment to the next character then block for a fixed period.
-		// cCharToTx will maintain its value across the delay as it is
-		// declared static.
 		cCharToTx++;
 		if (cCharToTx > 'x') {
 			cCharToTx = 'a';
@@ -180,7 +167,6 @@ static void emptyRunnerRoutine(CoRoutineHandle_t xHandle, unsigned portBASE_TYPE
  // We are to delay for 200ms.
 	static const TickType_t xDelayTime = 200 / portTICK_RATE_MS;
 
- // Must start every co-routine with a call to crSTART();
 	crSTART( xHandle );
 
 	for (;;) {
@@ -211,29 +197,31 @@ static void anotherEmptyRunnerRoutine(CoRoutineHandle_t xHandle, unsigned portBA
 }
 
 static void andAnotherEmptyRunnerRoutine(CoRoutineHandle_t xHandle, UBaseType_t uxIndex) {
- // Variables in co-routines must be declared static if they must
- // maintain value across a blocking call. This may not be necessary
- // for const variables.
+
 	static const char cLedToFlash[2] = { 5, 6 };
 	static const TickType_t uxFlashRates[2] = { 200, 400 };
 
- // Must start every co-routine with a call to crSTART();
 	crSTART( xHandle );
 
 	for (;;) {
-	// This co-routine just delays for a fixed period, then toggles
-	// an LED.  Two co-routines are created using this function, so
-	// the uxIndex parameter is used to tell the co-routine which
-	// LED to flash and how long to delay.  This assumes xQueue has
-	// already been created.
+
 	//   vParTestToggleLED( cLedToFlash[ uxIndex ] );
 		crDELAY(xHandle, uxFlashRates[uxIndex]);
 	}
 
-      // Must end every co-routine with a call to crEND();
 	crEND();
 }
 
+// Think this gets called on
+/// FRTOS1_vApplicationIdleHook();
+void FRTOS1_vApplicationIdleHook( void )
+ {
+	FRTOS1_vCoRoutineSchedule( void );
+ }
+
+void FRTOS1_vApplicationStackOverflowHook() {
+
+}
 
 /*lint -save  -e970 Disable MISRA rule (6.3) checking. */
 int main(void)
