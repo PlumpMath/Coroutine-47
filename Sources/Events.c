@@ -31,13 +31,23 @@
 #include "Events.h"
 #include "Init_Config.h"
 #include "PDD_Includes.h"
+#include "FRTOS1.h"
+#include "croutine.h"
+#include "portmacro.h"
+#include "FreeRTOS.h"
+#include "queue.h"
+#include "FreeRTOSConfig.h"
+
+
+QueueHandle_t readerQueue;
+QueueHandle_t schedulerQueue;
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
 
-QueueHandle_t readerQueue;
-QueueHandle_t schedulerQueue;
+
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
 
@@ -122,6 +132,8 @@ void FRTOS1_vApplicationIdleHook(void)
   /* Called whenever the RTOS is idle (from the IDLE task).
      Here would be a good place to put the CPU into low power mode. */
   /* Write your code here ... */
+	// FRTOS1_
+	// FRTOS1_vCoRoutineSchedule(void);
 }
 
 /*
@@ -168,8 +180,11 @@ void SlowSchedulerTimer_OnInterrupt(void)
 	 char cRxedChar;
 	 portBASE_TYPE xCRWokenByPost = pdFALSE;
 
-	 xCRWokenByPost = crQUEUE_SEND_FROM_ISR( schedulerQueue, &cRxedChar, xCRWokenByPost );
+	// crQUEUE_SEND_FROM_ISR
+	 crQUEUE_SEND_FROM_ISR( schedulerQueue, &cRxedChar, xCRWokenByPost );
 
+ //crQUEUE_SEND_FROM_ISR( schedulerQueue, 0, 0 );
+	// xQueueCRSendFromISR( schedulerQueue, 0, 0 );
 
 	     // We loop around reading characters until there are none left in the UART.
 	 //    while( UART_RX_REG_NOT_EMPTY() )
@@ -205,15 +220,15 @@ void ThreadReaderTimer_OnInterrupt(void) {
 	char cCharToTx;
 	portBASE_TYPE xCRWokenByPost = pdFALSE;
 
-	while (1) {
+	//while (1) {
 		// Are there any characters in the queue waiting to be sent?
 		// xCRWokenByPost will automatically be set to pdTRUE if a co-routine
 		// is woken by the post - ensuring that only a single co-routine is
 		// woken no matter how many times we go around this loop.
-		if (crQUEUE_RECEIVE_FROM_ISR(readerQueue, &cCharToTx, &xCRWokenByPost)) {
+	//	if (crQUEUE_RECEIVE_FROM_ISR(readerQueue, &cCharToTx, &xCRWokenByPost)) {
 		// SEND_CHARACTER(cCharToTx);
-		}
-	}
+	//	}
+	//}
 
 }
 

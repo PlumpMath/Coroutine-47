@@ -431,7 +431,7 @@ PE_DEBUGHALT();
       <boolgroup name="Timers" v="Disabled" />
       <group name="Memory">
         <Application_allocated_Heap v="no" />
-        <Memory_Allocation_Scheme v="Scheme 4: merge free blocks" />
+        <Memory_Allocation_Scheme v="Scheme 1: alloc only" />
         <boolgroup name="User Heap Section" v="Disabled" />
         <Total_Heap_Size v="2048" />
       </group>

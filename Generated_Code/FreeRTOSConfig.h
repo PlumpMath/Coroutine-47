@@ -151,7 +151,7 @@
 #define configMINIMAL_STACK_SIZE                  (200) /* stack size in addressable stack units */
 /*----------------------------------------------------------*/
 /* Heap Memory */
-#define configFRTOS_MEMORY_SCHEME                 4 /* either 1 (only alloc), 2 (alloc/free), 3 (malloc), 4 (coalesc blocks), 5 (multiple blocks) */
+#define configFRTOS_MEMORY_SCHEME                 1 /* either 1 (only alloc), 2 (alloc/free), 3 (malloc), 4 (coalesc blocks), 5 (multiple blocks) */
 #define configTOTAL_HEAP_SIZE                     ((size_t)(2048)) /* size of heap in bytes */
 #define configUSE_HEAP_SECTION_NAME               0 /* set to 1 if a custom section name (configHEAP_SECTION_NAME_STRING) shall be used, 0 otherwise */
 #if configUSE_HEAP_SECTION_NAME
@@ -166,7 +166,7 @@
 #define configUSE_STATS_FORMATTING_FUNCTIONS      (configUSE_TRACE_FACILITY || configGENERATE_RUN_TIME_STATS)
 #define configUSE_16_BIT_TICKS                    0 /* 1: use 16bit tick counter type, 0: use 32bit tick counter type */
 #define configIDLE_SHOULD_YIELD                   1
-#define configUSE_CO_ROUTINES                     0
+#define configUSE_CO_ROUTINES                     1
 #define configUSE_MUTEXES                         1
 #define configCHECK_FOR_STACK_OVERFLOW            1 /* 0 is disabling stack overflow. Set it to 1 for Method1 or 2 for Method2 */
 #define configUSE_RECURSIVE_MUTEXES               1

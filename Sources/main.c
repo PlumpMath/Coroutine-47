@@ -49,14 +49,13 @@
 #include "croutine.h"
 #include "portmacro.h"
 #include "FreeRTOS.h"
+#include "queue.h"
 
 extern QueueHandle_t schedulerQueue;
 extern QueueHandle_t messageQueue;
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
-static void messageQueueSenderRoutine(CoRoutineHandle_t xHandle,
-		unsigned portBASE_TYPE uxIndex) {
-
+static void messageQueueSenderRoutine(CoRoutineHandle_t xHandle,unsigned portBASE_TYPE uxIndex) {
 	// Variables in co-routines must be declared static if they must maintain value across a blocking call.
 	static portBASE_TYPE xNumberToPost = 0;
 	static portBASE_TYPE xResult;
@@ -66,38 +65,28 @@ static void messageQueueSenderRoutine(CoRoutineHandle_t xHandle,
 
 	for (;;) {
 		// This assumes the queue has already been created.
-		crQUEUE_SEND(xHandle, messageQueue, &xNumberToPost, (TickType_t ) 0U,
-				&xResult);
+ 		crQUEUE_SEND(xHandle, messageQueue, &xNumberToPost, (TickType_t ) 0U, &xResult);
 
 		if (xResult != pdPASS) {
 			// The message was not posted!
 		}
-
 		// Increment the number to be posted onto the queue.
 		xNumberToPost++;
-
 		// Delay for 100 ticks.
 		crDELAY(xHandle, 100);
 	}
-
-	// Co-routines must end with a call to crEND().
 	crEND();
 }
 
-static void messageQueueReceiveRoutine(CoRoutineHandle_t xHandle,
-	unsigned portBASE_TYPE uxIndex) {
-// Variables in co-routines must be declared static if they must maintain value across a blocking call.
+static void messageQueueReceiveRoutine(CoRoutineHandle_t xHandle, unsigned portBASE_TYPE uxIndex) {
 	static portBASE_TYPE xResult;
 	static unsigned portBASE_TYPE uxLEDToFlash;
 
-// All co-routines must start with a call to crSTART().
-	crSTART( xHandle )
-	;
+	crSTART(xHandle);
 
 	for (;;) {
 	// Wait for data to become available on the queue.
-		crQUEUE_RECEIVE(xHandle, messageQueue, &uxLEDToFlash, portMAX_DELAY,
-			&xResult);
+		crQUEUE_RECEIVE(xHandle, messageQueue, &uxLEDToFlash, portMAX_DELAY, &xResult);
 
 		if (xResult == pdPASS) {
 		// We received the LED to flash - flash it!
@@ -115,7 +104,7 @@ static void schedulerQueueReceiveRoutine(CoRoutineHandle_t xHandle,
 	static portBASE_TYPE xResult;
 	static unsigned portBASE_TYPE uxLEDToFlash;
 
-	crSTART( xHandle );
+	crSTART(xHandle);
 
 	for (;;) {
 		crQUEUE_RECEIVE(xHandle, schedulerQueue, &uxLEDToFlash, portMAX_DELAY, &xResult);
@@ -130,15 +119,12 @@ static void schedulerQueueReceiveRoutine(CoRoutineHandle_t xHandle,
 }
 
 static void schedulerQueueSendRoutine( xCoRoutineHandle xHandle, unsigned portBASE_TYPE uxIndex) {
-    // cChar holds its value while this co-routine is blocked and must therefore
-	// be declared static.
 	static char cCharToTx = 'a';
 	static portBASE_TYPE xResult;
 
-	crSTART( xHandle );
+	crSTART(xHandle);
 
 	for (;;) {
-	// Send the next character to the queue.
 		crQUEUE_SEND(xHandle, schedulerQueue, &cCharToTx, (TickType_t ) 0U, &xResult);
 
 		if (xResult == pdPASS) {
@@ -146,9 +132,6 @@ static void schedulerQueueSendRoutine( xCoRoutineHandle xHandle, unsigned portBA
 		} else {
 		// Could not post the character to the queue.
 		}
-
-		// ENABLE_RX_INTERRUPT();
-
 		cCharToTx++;
 		if (cCharToTx > 'x') {
 			cCharToTx = 'a';
@@ -156,48 +139,29 @@ static void schedulerQueueSendRoutine( xCoRoutineHandle xHandle, unsigned portBA
 
 		crDELAY(xHandle, (TickType_t ) 100);
 	}
-
-         // All co-routines must end with a call to crEND().
 	crEND();
 }
 
 static void emptyRunnerRoutine(CoRoutineHandle_t xHandle, unsigned portBASE_TYPE uxIndex) {
- // Variables in co-routines must be declared static if they must maintain value across a blocking call.
- // This may not be necessary for const variables.
- // We are to delay for 200ms.
 	static const TickType_t xDelayTime = 200 / portTICK_RATE_MS;
 
-	crSTART( xHandle );
-
+	crSTART(xHandle);
 	for (;;) {
 	 // Delay for 200ms.
 		crDELAY(xHandle, xDelayTime);
-
-	 // Do something here.
 	}
-
-	// Must end every co-routine with a call to crEND();
 	crEND();
 }
 
-static void anotherEmptyRunnerRoutine(CoRoutineHandle_t xHandle, unsigned portBASE_TYPE uxIndex) {
+void anotherEmptyRunnerRoutine(CoRoutineHandle_t xHandle, unsigned portBASE_TYPE uxIndex) {
+	crSTART(xHandle);
 
- // Variables in co-routines must be declared static if they must maintain value across a blocking call.
-	static long ulAVariable;
+	for (;;) {}
 
- // Must start every co-routine with a call to crSTART();
-	crSTART( xHandle );
-
-	for (;;) {
-		// Co-routine functionality goes here.
-	}
-
-	// Must end every co-routine with a call to crEND();
 	crEND();
 }
 
-static void andAnotherEmptyRunnerRoutine(CoRoutineHandle_t xHandle, UBaseType_t uxIndex) {
-
+void andAnotherEmptyRunnerRoutine(CoRoutineHandle_t xHandle, UBaseType_t uxIndex) {
 	static const char cLedToFlash[2] = { 5, 6 };
 	static const TickType_t uxFlashRates[2] = { 200, 400 };
 
@@ -212,16 +176,6 @@ static void andAnotherEmptyRunnerRoutine(CoRoutineHandle_t xHandle, UBaseType_t 
 	crEND();
 }
 
-// Think this gets called on
-/// FRTOS1_vApplicationIdleHook();
-void FRTOS1_vApplicationIdleHook( void )
- {
-	FRTOS1_vCoRoutineSchedule( void );
- }
-
-void FRTOS1_vApplicationStackOverflowHook() {
-
-}
 
 /*lint -save  -e970 Disable MISRA rule (6.3) checking. */
 int main(void)
@@ -237,13 +191,13 @@ int main(void)
 
   // In this case the index is not used and is passed
   // in as 0.
-  FRTOS1_xCoRoutineCreate( messageQueueSenderRoutine, 0, 0 );
-  FRTOS1_xCoRoutineCreate( messageQueueReceiveRoutine, 0, 1);
-  FRTOS1_xCoRoutineCreate( schedulerQueueReceiveRoutine, 0, 2);
-  FRTOS1_xCoRoutineCreate( schedulerQueueSendRoutine, 0, 3 );
-  FRTOS1_xCoRoutineCreate( emptyRunnerRoutine, 0, 4 );
-  FRTOS1_xCoRoutineCreate( anotherEmptyRunnerRoutine, 0, 6);
-  FRTOS1_xCoRoutineCreate( andAnotherEmptyRunnerRoutine, 0, 7);
+  //xCoRoutineCreate( messageQueueSenderRoutine, 0, 0 );
+  //xCoRoutineCreate( messageQueueReceiveRoutine, 0, 1);
+  ///xCoRoutineCreate( schedulerQueueReceiveRoutine, 0, 2);
+ /// xCoRoutineCreate( schedulerQueueSendRoutine, 0, 3 );
+  //xCoRoutineCreate( emptyRunnerRoutine, 0, 4 );
+ // xCoRoutineCreate( anotherEmptyRunnerRoutine, (UBaseType_t) 0, (UBaseType_t) 6);
+//  xCoRoutineCreate( andAnotherEmptyRunnerRoutine, (UBaseType_t) 0,  (UBaseType_t) 7);
 
 
   FRTOS1_vTaskStartScheduler();
